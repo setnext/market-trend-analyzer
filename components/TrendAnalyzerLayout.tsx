@@ -956,11 +956,11 @@ export default function TrendAnalyzerLayout() {
         </div>
 
         {/* Chat Input Bar */}
-        <div className="bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
+        <div className="bg-white border-t border-gray-200 px-6 py-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-3 bg-gray-50 border-2 border-gray-200 rounded-2xl px-4 py-3 focus-within:border-purple-500 focus-within:bg-white transition-all">
-              <button className="p-2 rounded-full hover:bg-gray-200 transition">
-                <Plus className="w-5 h-5 text-gray-600" />
+            <div className="flex items-center gap-3 bg-white border border-gray-300 rounded-full px-4 py-3 focus-within:border-gray-400 transition-all shadow-sm">
+              <button className="p-1 hover:bg-gray-100 rounded-full transition">
+                <Plus className="w-5 h-5 text-gray-500" />
               </button>
 
               <input
@@ -969,12 +969,12 @@ export default function TrendAnalyzerLayout() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask about trends, analytics, or specific products..."
-                className="flex-1 outline-none bg-transparent text-gray-700 placeholder-gray-400 text-sm"
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400 text-sm"
               />
 
               <button 
                 onClick={handleSendMessage}
-                className="p-2.5 rounded-full bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={inputValue.trim() === ''}
               >
                 <Send className="w-4 h-4 text-white" />
