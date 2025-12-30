@@ -35,7 +35,7 @@ export default function FootwearTrendAnalyzer() {
   const [activeNav, setActiveNav] = useState<NavSection>('context');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
-  
+
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     brand: [],
     size: [],
@@ -144,55 +144,50 @@ export default function FootwearTrendAnalyzer() {
         <nav className="flex-1 flex flex-col items-center gap-8">
           <button
             onClick={() => setActiveNav('context')}
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-              activeNav === 'context'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'context'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
           >
             <Search className="w-6 h-6" />
-            <span className="text-xs font-medium">Context</span>
+            <span className="text-xs font-medium">Intelligence</span>
           </button>
           <button
             onClick={() => setActiveNav('inspiration')}
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-              activeNav === 'inspiration'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'inspiration'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
           >
             <Lightbulb className="w-6 h-6" />
             <span className="text-xs font-medium">Inspiration</span>
           </button>
           <button
             onClick={() => setActiveNav('search')}
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-              activeNav === 'search'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'search'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
           >
             <TrendingUp className="w-6 h-6" />
             <span className="text-xs font-medium">Search</span>
           </button>
           <button
             onClick={() => setActiveNav('social')}
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-              activeNav === 'social'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'social'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
           >
             <Instagram className="w-6 h-6" />
             <span className="text-xs font-medium">Social</span>
           </button>
           <button
             onClick={() => setActiveNav('explore')}
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-              activeNav === 'explore'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'explore'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
           >
             <Sparkles className="w-6 h-6" />
             <span className="text-xs font-medium">Explore</span>
@@ -201,19 +196,19 @@ export default function FootwearTrendAnalyzer() {
       </div>
 
       {/* Middle Panel - Dynamic Content (Filters & Tools) */}
-      <div className="w-1/3 bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 overflow-y-auto">
+      <div className="w-[22%] bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 overflow-y-auto">
         {activeNav === 'context' && (
-          <div className="p-6 space-y-8">
+          <div className="p-4 space-y-5">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Search className="w-5 h-5 text-purple-400" />
-                <h2 className="text-xl font-bold">Brand & Category Context</h2>
+                <h2 className="text-xl font-bold">Trend Intelligence</h2>
               </div>
-              <p className="text-sm text-gray-400 mb-6">Configure filters for footwear trend analysis</p>
+              <p className="text-sm text-gray-400 mb-6"> Select filters to drive trend insights</p>
 
               {/* Brand */}
               <div>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold">Brand</span>
                   <button onClick={() => toggleSection('brand')} className="text-sm text-purple-400">
                     {expandedSections.brand ? 'Collapse' : 'Expand'}
@@ -225,13 +220,12 @@ export default function FootwearTrendAnalyzer() {
                       <button
                         key={brand}
                         onClick={() => toggleFilterOption('brand', brand)}
-                        className={`h-20 rounded-lg border-2 transition-all flex items-center justify-center ${
-                          selectedFilters.brand.includes(brand)
-                            ? 'bg-purple-600 border-purple-500 shadow-lg shadow-purple-500/30'
-                            : 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                        }`}
+                        className={`h-10 rounded-md border transition-all flex items-center justify-center ${selectedFilters.brand.includes(brand)
+                          ? 'bg-purple-600 border-purple-500'
+                          : 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                          }`}
                       >
-                        <span className={`font-bold ${selectedFilters.brand.includes(brand) ? 'text-white' : 'text-gray-300'}`}>
+                        <span className="text-xs font-medium">
                           {brand}
                         </span>
                       </button>
@@ -241,253 +235,263 @@ export default function FootwearTrendAnalyzer() {
               </div>
 
               {/* Size */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold">Size (UK/India)</span>
-                  <button onClick={() => toggleSection('size')} className="text-sm text-purple-400">
-                    {expandedSections.size ? 'Collapse' : 'Expand'}
-                  </button>
-                </div>
-                {expandedSections.size && (
-                  <div className="grid grid-cols-5 gap-2">
-                    {filterOptions.size.map(size => (
-                      <button
-                        key={size}
-                        onClick={() => toggleFilterOption('size', size)}
-                        className={`h-12 rounded-lg border-2 transition-all ${
-                          selectedFilters.size.includes(size)
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold">Size (UK/India)</span>
+                    <button onClick={() => toggleSection('size')} className="text-sm text-purple-400">
+                      {expandedSections.size ? 'Collapse' : 'Expand'}
+                    </button>
+                  </div>
+                  {expandedSections.size && (
+                    <div className="grid grid-cols-5 gap-2 mt-2">
+                      {filterOptions.size.map(size => (
+                        <button
+                          key={size}
+                          onClick={() => toggleFilterOption('size', size)}
+                          className={`h-9 rounded-lg border-2 transition-all ${selectedFilters.size.includes(size)
                             ? 'bg-purple-600 border-purple-500'
                             : 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                        }`}
-                      >
-                        <span className="text-sm font-semibold">{size}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Color */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold">Color</span>
-                  <button onClick={() => toggleSection('color')} className="text-sm text-purple-400">
-                    {expandedSections.color ? 'Collapse' : 'Expand'}
-                  </button>
+                            }`}
+                        >
+                          <span className="text-sm font-semibold">{size}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {expandedSections.color && (
-                  <div className="grid grid-cols-3 gap-3">
-                    {filterOptions.color.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => toggleFilterOption('color', color)}
-                        className={`h-16 rounded-lg border-2 transition-all flex items-center justify-center ${
-                          selectedFilters.color.includes(color)
+
+                {/* Color */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold">Color</span>
+                    <button onClick={() => toggleSection('color')} className="text-sm text-purple-400">
+                      {expandedSections.color ? 'Collapse' : 'Expand'}
+                    </button>
+                  </div>
+                  {expandedSections.color && (
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {filterOptions.color.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => toggleFilterOption('color', color)}
+                          className={`h-10 rounded-lg border-2 transition-all flex items-center justify-center ${selectedFilters.color.includes(color)
                             ? 'bg-purple-600 border-purple-500'
                             : 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                        }`}
-                      >
-                        <span className="text-sm font-medium">{color}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Gender */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold">Gender</span>
-                  <button onClick={() => toggleSection('gender')} className="text-sm text-purple-400">
-                    {expandedSections.gender ? 'Collapse' : 'Expand'}
-                  </button>
+                            }`}
+                        >
+                          <span className="text-xs font-medium">{color}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {expandedSections.gender && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {filterOptions.gender.map(gender => (
-                      <button
-                        key={gender}
-                        onClick={() => toggleFilterOption('gender', gender)}
-                        className={`h-16 rounded-lg border-2 transition-all flex items-center justify-center ${
-                          selectedFilters.gender.includes(gender)
+
+                {/* Gender */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold">Gender</span>
+
+                    <button onClick={() => toggleSection('gender')} className="text-sm text-purple-400">
+                      {expandedSections.gender ? 'Collapse' : 'Expand'}
+                    </button>
+                  </div>
+                  {expandedSections.gender && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {filterOptions.gender.map(gender => (
+                        <button
+                          key={gender}
+                          onClick={() => toggleFilterOption('gender', gender)}
+                          className={`h-10 rounded-md border transition-all flex items-center justify-center ${selectedFilters.gender.includes(gender)
                             ? 'bg-purple-600 border-purple-500'
                             : 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                        }`}
-                      >
-                        <span className="font-semibold">{gender}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                            }`}
+                        >
+                          <span className="text-xs font-medium">
+                            {gender}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              <button
-                className={`w-full py-4 rounded-lg font-bold transition ${
-                  totalActiveFilters > 0
+                <button
+                  className={`w-full py-2 text-xs font-medium rounded ${totalActiveFilters > 0
                     ? 'bg-purple-600 hover:bg-purple-700'
                     : 'bg-gray-700 cursor-not-allowed opacity-60'
-                }`}
-                disabled={totalActiveFilters === 0}
-              >
-                Apply {totalActiveFilters} Filter{totalActiveFilters !== 1 ? 's' : ''}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeNav === 'inspiration' && (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Get Inspired</h2>
-            <div className="border-2 border-dashed border-gray-700 rounded-lg p-12 text-center hover:border-gray-600 transition cursor-pointer">
-              <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-300 font-semibold mb-1">Click to upload moodboards or sketches</p>
-              <p className="text-xs text-gray-500">PNG, JPG, PDF supported</p>
-            </div>
-          </div>
-        )}
-
-        {activeNav === 'search' && (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Google Search Trends</h2>
-            <div className="flex gap-2 mb-6">
-              <input
-                type="text"
-                value={customSearchTerm}
-                onChange={(e) => setCustomSearchTerm(e.target.value)}
-                placeholder="Add custom search term..."
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 placeholder-gray-500"
-              />
-              <button className="bg-gray-700 hover:bg-gray-600 px-6 rounded-lg">Add</button>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-400">TRENDING SEARCHES</span>
-              <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {trendingKeywords.map(k => (
-                <button key={k.id} className="px-4 py-2 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700">
-                  {k.label}
+                    }`}
+                  disabled={totalActiveFilters === 0}
+                >
+                  Apply {totalActiveFilters} Filter{totalActiveFilters !== 1 ? 's' : ''}
                 </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeNav === 'social' && (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Social Media Trends</h2>
-            <div className="flex gap-2 mb-6">
-              <input
-                type="text"
-                value={customSocialTopic}
-                onChange={(e) => setCustomSocialTopic(e.target.value)}
-                placeholder="Add custom topic..."
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 placeholder-gray-500"
-              />
-              <button className="bg-gray-700 hover:bg-gray-600 px-6 rounded-lg">Add</button>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-400">SOCIAL BUZZ</span>
-              <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {socialMediaTopics.map(t => (
-                <button key={t.id} className="px-4 py-2 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700">
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeNav === 'explore' && (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Explore More</h2>
-            <textarea
-              placeholder="e.g., 'Show me sustainable sneaker trends in India' or 'Formal footwear alternatives to classic loafers'"
-              className="w-full h-40 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 resize-none placeholder-gray-500"
-            />
-            <button className="w-full mt-4 bg-purple-600 hover:bg-purple-700 py-4 rounded-lg font-bold flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Explore Trends
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Right Panel - Always Chat (Footwear Trend Analysis) */}
-      <div className="flex-1 flex flex-col bg-black">
-        <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-full flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-lg">Footwear Trend Analysis Chat</h2>
-                <p className="text-xs text-gray-400">Ask anything about footwear trends, styles, or market insights</p>
               </div>
             </div>
-            {totalActiveFilters > 0 && (
-              <div className="bg-purple-600 px-3 py-1.5 rounded-full text-xs font-semibold">
-                {totalActiveFilters} filter{totalActiveFilters !== 1 ? 's' : ''} active
+        )}
+
+            {activeNav === 'inspiration' && (
+              <div className="p-4 space-y-4">
+                <h2 className="text-xl font-bold mb-4">Get Inspired</h2>
+                <div className="border-2 border-dashed border-gray-700 rounded-lg p-12 text-center hover:border-gray-600 transition cursor-pointer">
+                  <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-300 font-semibold mb-1">Click to upload moodboards or sketches</p>
+                  <p className="text-xs text-gray-500">PNG, JPG, PDF supported</p>
+                </div>
+              </div>
+            )}
+
+            {activeNav === 'search' && (
+              <div className="p-6">
+                <h2 className="text-xl font-bold mb-4">Google Search Trends</h2>
+                <div className="flex gap-2 mb-6">
+                  <input
+                    type="text"
+                    value={customSearchTerm}
+                    onChange={(e) => setCustomSearchTerm(e.target.value)}
+                    placeholder="Add custom search term..."
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 placeholder-gray-500"
+                  />
+                  <button className="bg-gray-700 hover:bg-gray-600 px-6 rounded-lg">Add</button>
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-medium text-gray-400">TRENDING SEARCHES</span>
+                  <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {trendingKeywords.map(k => (
+                    <button key={k.id} className="px-4 py-2 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700">
+                      {k.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeNav === 'social' && (
+              <div className="p-6">
+                <h2 className="text-xl font-bold mb-4">Social Media Trends</h2>
+                <div className="flex gap-2 mb-6">
+                  <input
+                    type="text"
+                    value={customSocialTopic}
+                    onChange={(e) => setCustomSocialTopic(e.target.value)}
+                    placeholder="Add custom topic..."
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 placeholder-gray-500"
+                  />
+                  <button className="bg-gray-700 hover:bg-gray-600 px-6 rounded-lg">Add</button>
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-gray-400">SOCIAL BUZZ</span>
+                  <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {socialMediaTopics.map(t => (
+                    <button key={t.id} className="px-4 py-2 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700">
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeNav === 'explore' && (
+              <div className="p-6">
+                <h2 className="text-xl font-bold mb-4">Explore More</h2>
+                <textarea
+                  placeholder="e.g., 'Show me sustainable sneaker trends in India' or 'Formal footwear alternatives to classic loafers'"
+                  className="w-full h-40 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 resize-none placeholder-gray-500"
+                />
+                <div className="mt-4">
+                  <button
+                    className={`w-full py-2 text-xs font-medium rounded ${totalActiveFilters > 0
+                      ? 'bg-purple-600 hover:bg-purple-700'
+                      : 'bg-gray-700 cursor-not-allowed opacity-60'
+                      }`}
+                    disabled={totalActiveFilters === 0}
+                  >
+                    Apply {totalActiveFilters} Filter{totalActiveFilters !== 1 ? 's' : ''}
+                  </button>
+                </div>
+
+                <button className="mt-4 w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Explore Trends
+                </button>
               </div>
             )}
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <MessageSquare className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Start Analyzing Footwear Trends</h3>
-                <p className="text-gray-400">Apply filters on the left and ask questions about styles, brands, or emerging trends.</p>
+      {/* Right Panel - Always Chat (Footwear Trend Analysis) */}
+        <div className="flex-1 flex flex-col bg-black">
+          <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-full flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg">Trend Intelligence Chat</h2>
+                  <p className="text-xs text-gray-400">Ask anything about footwear trends, styles, or market insights</p>
+                </div>
               </div>
+              {totalActiveFilters > 0 && (
+                <div className="bg-purple-600 px-3 py-1.5 rounded-full text-xs font-semibold">
+                  {totalActiveFilters} filter{totalActiveFilters !== 1 ? 's' : ''} active
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-2xl px-5 py-3 rounded-2xl ${
-                    message.sender === 'user'
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6">
+            {messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <MessageSquare className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Start Analyzing Footwear Trends</h3>
+                  <p className="text-gray-400">Apply filters on the left and ask questions about styles, brands, or emerging trends.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-2xl px-5 py-3 rounded-2xl ${message.sender === 'user'
                       ? 'bg-purple-600 text-white'
                       : 'bg-gray-800 text-white border border-gray-700'
-                  }`}>
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                    <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                      }`}>
+                      <p className="text-sm leading-relaxed">{message.text}</p>
+                      <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-        <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
-          <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
-            <button className="p-1 hover:bg-gray-700 rounded-full transition">
-              <Plus className="w-5 h-5 text-gray-400" />
-            </button>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about footwear trends, brands, or styles..."
-              className="flex-1 outline-none bg-transparent text-white placeholder-gray-500 text-sm"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
-              className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
-            >
-              <Send className="w-4 h-4 text-white" />
-            </button>
+          <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
+            <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
+              <button className="p-1 hover:bg-gray-700 rounded-full transition">
+                <Plus className="w-5 h-5 text-gray-400" />
+              </button>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about footwear trends, brands, or styles..."
+                className="flex-1 outline-none bg-transparent text-white placeholder-gray-500 text-sm"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim()}
+                className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
+              >
+                <Send className="w-4 h-4 text-white" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
+      </div >
+      );
 }
