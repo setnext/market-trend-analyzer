@@ -1,9 +1,10 @@
 "use client";
 import { Plus, Send, Search, TrendingUp, MessageSquare, Sparkles, Lightbulb, Instagram, BarChart3, Upload, RefreshCw, Settings, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
 
 type FilterType = 'brand' | 'size' | 'color' | 'gender';
-type NavSection = 'context' | 'inspiration' | 'search' | 'social' | 'explore';
+type NavSection = 'context' | 'inspiration' ;
 
 interface FilterOptions {
   brand: string[];
@@ -37,6 +38,7 @@ export default function FootwearTrendAnalyzer() {
   const [inputValue, setInputValue] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMiddleOpen, setIsMiddleOpen] = useState(true);
+  const router = useRouter();
 
 
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
@@ -56,6 +58,31 @@ export default function FootwearTrendAnalyzer() {
 
   const [customSearchTerm, setCustomSearchTerm] = useState<string>('');
   const [customSocialTopic, setCustomSocialTopic] = useState<string>('');
+  const [activeStep, setActiveStep] = useState<'discover' | 'design' | 'showcase' | 'catalog' | 'tryon'>('discover');
+  const [imageResults, setImageResults] = useState<any[]>([]);
+
+
+const handleImageUpload = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/similar-products", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    console.log("API Response:", data);
+
+    setImageResults(data.results);
+
+  } catch (error) {
+    console.error("Upload failed", error);
+  }
+};
+
 
   const toggleFilterOption = (filterName: FilterType, option: string): void => {
     setSelectedFilters(prev => ({
@@ -136,14 +163,74 @@ export default function FootwearTrendAnalyzer() {
   const totalActiveFilters = Object.values(selectedFilters).flat().length;
 
   return (
-    <div className="flex h-screen bg-black text-white">
+    
+    // <div className="flex h-screen bg-black text-white">
+      <div className="flex flex-col h-screen bg-black">
+{/* TOP HEADER */}
+<div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-6">
+  <h1 className="text-lg font-semibold text-white tracking-wide">
+    Agentic Trend Analyzer
+  </h1>
+</div>
+{/* STEPPER BAR */}
+{/* <div className="bg-black border-b border-gray-800 px-6 py-4"> */}
+<div className="bg-black border-b border-gray-800 px-6 py-4 relative z-50 pointer-events-auto">
+
+  <div className="flex items-center gap-10">
+    
+{[
+  { id: "discover", label: "Discover", step: "01" },
+  { id: "design", label: "Design", step: "02" },
+  { id: "showcase", label: "Showcase", step: "03" },
+  { id: "catalog", label: "Catalog", step: "04" },
+  { id: "tryon", label: "Try-On", step: "05" },
+].map((item) => (
+  <button
+    key={item.id}
+    // onClick={() => setActiveStep(item.id as any)}
+    className="flex items-center gap-3"
+  >
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
+        ${activeStep === item.id
+          ? "bg-purple-600 text-white"
+          : "border border-gray-600 text-gray-400"
+        }`}
+    >
+      {item.step}
+    </div>
+
+    <span
+      className={`text-sm font-medium ${
+        activeStep === item.id ? "text-purple-400" : "text-gray-400"
+      }`}
+    >
+      {item.label}
+    </span>
+  </button>
+))}
+
+  </div>
+</div>
+
+<div className="flex flex-1 overflow-hidden">
+
       {/* Left Sidebar - Navigation */}
-      <div
+      
+      {/* <div
         className={`bg-black border-r border-gray-800 
               transition-all duration-300 
               ${isSidebarOpen ? 'w-32' : 'w-14'}
               flex flex-col items-center py-6 relative`}
-      >
+      > */}
+      {activeStep === "discover" && (
+  <div
+    className={`bg-black border-r border-gray-800 
+    transition-all duration-300 
+    ${isSidebarOpen ? 'w-32' : 'w-14'}
+    flex flex-col items-center py-6 relative`}
+  >
+
         {/* Toggle Button */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -156,11 +243,11 @@ export default function FootwearTrendAnalyzer() {
           )}
         </button>
 
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
-        </div>
+        </div> */}
         <nav className="flex flex-col items-center gap-6 mt-4">
           <button
             onClick={() => setActiveNav('context')}
@@ -184,42 +271,11 @@ export default function FootwearTrendAnalyzer() {
             <Lightbulb className="w-6 h-6" />
             {isSidebarOpen && <span className="text-xs font-medium">Inspiration</span>}
           </button>
-          <button
-            onClick={() => setActiveNav('search')}
-            title="Search"
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'search'
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-              }`}
-          >
-            <TrendingUp className="w-6 h-6" />
-            {isSidebarOpen && <span className="text-xs font-medium">Search</span>}
-          </button>
-          <button
-            onClick={() => setActiveNav('social')}
-            title="Social"
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'social'
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-              }`}
-          >
-            <Instagram className="w-6 h-6" />
-            {isSidebarOpen && <span className="text-xs font-medium">Social</span>}
-          </button>
-          <button
-            onClick={() => setActiveNav('explore')}
-            title="Explore"
-            className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all ${activeNav === 'explore'
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-              }`}
-          >
-            <Sparkles className="w-6 h-6" />
-            {isSidebarOpen && <span className="text-xs font-medium">Explore</span>}
-          </button>
+
+
         </nav>
       </div>
-
+      )}
       {/* Middle Panel - Dynamic Content (Filters & Tools) */}
       <div className={`${isMiddleOpen ? 'w-[22%]' : 'w-14'} bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 overflow-y-auto overflow-x-hidden custom-scroll transition-all duration-300 relative`}>
         {/* Toggle Button */}
@@ -233,6 +289,9 @@ export default function FootwearTrendAnalyzer() {
             <ChevronRight className="w-4 h-4 text-gray-400" />
           )}
         </button>
+
+
+
 
         {isMiddleOpen ? (
           <>
@@ -374,129 +433,36 @@ export default function FootwearTrendAnalyzer() {
             {activeNav === 'inspiration' && (
               <div className="p-4 space-y-4">
                 <h2 className="text-xl font-bold mb-4">Get Inspired</h2>
-                <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-gray-600 transition cursor-pointer">
-                  <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-300 font-semibold mb-1">
-                    Click to upload moodboards or sketches
-                  </p>
-                  <p className="text-[11px] text-gray-500">
-                    PNG · JPG · PDF
-                  </p>
+<label
+  className="relative z-50 border-2 border-dashed border-gray-700 rounded-lg p-6 
+             text-center cursor-pointer hover:border-gray-500 transition block"
+>
+  <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
+  <p className="text-gray-300 font-semibold mb-1">
+    Click to upload moodboards or sketches
+  </p>
+  <p className="text-[11px] text-gray-500">
+    PNG · JPG · JPEG
+  </p>
 
-                </div>
+  <input
+    type="file"
+    accept="image/*"
+    className="absolute inset-0 opacity-0 cursor-pointer"
+    onChange={(e) => {
+      if (e.target.files?.[0]) {
+        handleImageUpload(e.target.files[0]);
+      }
+    }}
+  />
+</label>
+
+
+
+
               </div>
             )}
 
-            {activeNav === 'search' && (
-              <div className="p-6">
-                <h2 className="text-xl font-bold mb-4">Google Search Trends</h2>
-                <div className="flex items-center gap-2 mb-4 w-full">
-                  <input
-                    type="text"
-                    placeholder="Add custom search term..."
-                    className="flex-1 min-w-0 h-9 bg-gray-800 border border-gray-700
-               rounded-md px-3 text-sm placeholder-gray-500"
-                  />
-
-                  <button
-                    className="h-9 px-4 text-sm rounded-md 
-               bg-gray-700 hover:bg-gray-600 flex-shrink-0"
-                  >
-                    Add
-                  </button>
-                </div>
-
-
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-400">
-                    TRENDING SEARCHES
-                  </span>
-                  <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {trendingKeywords.map(k => (
-                    <button
-                      key={k.id}
-                      className="h-8 px-3 rounded-md border border-gray-700 bg-gray-800
-                 text-xs font-medium text-gray-200
-                 hover:border-gray-600 hover:bg-gray-700 transition"
-                    >
-                      {k.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeNav === 'social' && (
-              <div className="p-6">
-                <h2 className="text-xl font-bold mb-4">Social Media Trends</h2>
-                <div className="flex items-center gap-2 mb-4 w-full">
-                  <input
-                    type="text"
-                    placeholder="Add custom search term..."
-                    className="flex-1 min-w-0 h-9 bg-gray-800 border border-gray-700
-               rounded-md px-3 text-sm placeholder-gray-500"
-                  />
-
-                  <button
-                    className="h-9 px-4 text-sm rounded-md 
-               bg-gray-700 hover:bg-gray-600 flex-shrink-0"
-                  >
-                    Add
-                  </button>
-                </div>
-
-
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-gray-400">SOCIAL BUZZ</span>
-                  <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer" />
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {socialMediaTopics.map(t => (
-                    <button key={t.id} className="h-8 px-3 rounded-md border border-gray-700 bg-gray-800
-                 text-xs font-medium text-gray-200
-                 hover:border-gray-600 hover:bg-gray-700 transition"
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeNav === 'explore' && (
-              <div className="p-4 space-y-3">
-                <h2 className="text-lg font-semibold">Explore More</h2>
-
-                <textarea
-                  placeholder="e.g. Sustainable sneaker trends in India"
-                  className="w-full h-24 bg-gray-800 border border-gray-700 
-                 rounded-md px-3 py-2 text-sm 
-                 resize-none placeholder-gray-500"
-                />
-
-                <button
-                  className={`w-full h-9 text-xs font-medium rounded-md ${totalActiveFilters > 0
-                    ? 'bg-purple-600 hover:bg-purple-700'
-                    : 'bg-gray-700 cursor-not-allowed opacity-60'
-                    }`}
-                  disabled={totalActiveFilters === 0}
-                >
-                  Apply {totalActiveFilters} Filter{totalActiveFilters !== 1 ? 's' : ''}
-                </button>
-
-                <button
-                  className="w-full h-10 text-sm rounded-md 
-                 bg-purple-600 hover:bg-purple-700 
-                 flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Explore Trends
-                </button>
-              </div>
-            )}
           </>
         ) : (
           <div className="flex flex-col items-center pt-6 gap-6">
@@ -510,12 +476,53 @@ export default function FootwearTrendAnalyzer() {
         <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-full flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
+
               <div>
-                <h2 className="font-bold text-lg">Trend Intelligence Chat</h2>
-                <p className="text-xs text-gray-400">Ask anything about footwear trends, styles, or market insights</p>
+                {/* <h2 className="font-bold text-lg">Trend Intelligence Chat</h2> */}
+                {/* <p className="text-xs text-gray-400">Ask anything about footwear trends, styles, or market insights</p> */}
+                {/* RESULT GRID — MUST BE OUTSIDE INPUT */}
+{imageResults.length > 0 && (
+    <div className="mt-6 max-h-[65vh] overflow-y-auto pr-2 custom-scroll">
+
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-1">
+    {imageResults.map((item, index) => (
+<div
+  key={index}
+  onClick={() =>
+    router.push(
+      `/product_design?image=${encodeURIComponent(item.image)}&title=${encodeURIComponent(item.title)}`
+    )
+  }
+  className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition"
+>
+
+        <img
+          src={item.image}
+          alt={item.title}
+          className="w-full h-70 object-contain bg-white"
+        />
+
+        <div className="p-3">
+          <p className="text-sm font-semibold text-white line-clamp-2">
+            {item.title}
+          </p>
+
+          {item.price && (
+            <p className="text-xs text-purple-400 mt-1">
+              {item.price}
+            </p>
+          )}
+
+          {item.rating && (
+            <p className="text-xs text-gray-400 mt-1">
+              ⭐ {item.rating}
+            </p>
+          )}
+        </div>
+      </div>
+    ))}
+  </div></div>
+)}
               </div>
             </div>
             {totalActiveFilters > 0 && (
@@ -577,6 +584,6 @@ export default function FootwearTrendAnalyzer() {
           </div>
         </div>
       </div>
-    </div >
+    </div ></div>
   );
 }
