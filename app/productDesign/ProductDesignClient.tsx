@@ -1,13 +1,15 @@
 "use client";
-import { Plus, Send, ArrowLeft, Sparkles } from "lucide-react";
-import React, { useState, useEffect } from 'react';
+
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Plus, Send, ArrowLeft, Sparkles } from "lucide-react";
+import { Suspense } from "react";
 
 interface Message {
   id: number;
   text: string;
   sender: 'user' | 'bot';
-  timestamp: Date;
+  timestamp: Date;  
 }
 
 export default function ProductDesign() {
@@ -74,7 +76,7 @@ export default function ProductDesign() {
   return (
         
     // <div className="flex h-screen bg-black text-white">
-      <div className="flex flex-col h-screen bg-black">
+      <div className="flex flex-col min-h-screen bg-black">
 {/* TOP HEADER */}
 <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-6">
   <h1 className="text-lg font-semibold text-white tracking-wide">

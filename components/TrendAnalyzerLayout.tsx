@@ -490,7 +490,7 @@ const handleImageUpload = async (file: File) => {
   key={index}
   onClick={() =>
     router.push(
-      `/product_design?image=${encodeURIComponent(item.image)}&title=${encodeURIComponent(item.title)}`
+      `/productDesign?image=${encodeURIComponent(item.image)}&title=${encodeURIComponent(item.title)}`
     )
   }
   className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition"
