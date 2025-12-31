@@ -32,6 +32,19 @@ interface TrendKeyword {
   label: string;
 }
 
+
+interface ProductResult {
+  title: string;
+  image: string;
+  price?: string;
+  rating?: string;
+  reviews?: string;
+  store?: string;
+  url?: string;
+}
+
+
+
 export default function FootwearTrendAnalyzer() {
   const [activeNav, setActiveNav] = useState<NavSection>('context');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,7 +72,7 @@ export default function FootwearTrendAnalyzer() {
   const [customSearchTerm, setCustomSearchTerm] = useState<string>('');
   const [customSocialTopic, setCustomSocialTopic] = useState<string>('');
   const [activeStep, setActiveStep] = useState<'discover' | 'design' | 'showcase' | 'catalog' | 'tryon'>('discover');
-  const [imageResults, setImageResults] = useState<any[]>([]);
+  const [imageResults, setImageResults] = useState<ProductResult[]>([]);
 
 
 const handleImageUpload = async (file: File) => {
