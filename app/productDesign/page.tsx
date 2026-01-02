@@ -131,8 +131,8 @@ function ProductDesignContent() {
           {[
             { id: "discover", label: "Discover", step: "01" },
             { id: "design", label: "Design", step: "02" },
-            { id: "showcase", label: "Showcase", step: "03" },
-            { id: "catalog", label: "Catalog", step: "04" },
+            { id: "catalog", label: "Catalog", step: "03" },
+            { id: "showcase", label: "Showcase", step: "04" },
             { id: "tryon", label: "Try-On", step: "05" },
           ].map((item) => (
             <button key={item.id} className="flex items-center gap-3">
@@ -172,6 +172,17 @@ function ProductDesignContent() {
               />
             </div>
           )}
+          <div className="mt-4">
+          <button
+            onClick={() => router.push(`/catalog?image=${encodeURIComponent(currentEditedImage)}&title=${encodeURIComponent(productTitle)}`)}
+
+
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+          >
+            Add to Catalogue
+          </button>
+        </div>
+
         </div>
 
         <div className="flex-1 flex flex-col bg-black text-white">

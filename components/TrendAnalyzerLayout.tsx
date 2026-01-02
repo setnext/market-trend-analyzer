@@ -194,8 +194,8 @@ const handleImageUpload = async (file: File) => {
 {[
   { id: "discover", label: "Discover", step: "01" },
   { id: "design", label: "Design", step: "02" },
-  { id: "showcase", label: "Showcase", step: "03" },
-  { id: "catalog", label: "Catalog", step: "04" },
+  { id: "catalog", label: "Catalog", step: "03" },
+  { id: "showcase", label: "Showcase", step: "04" },
   { id: "tryon", label: "Try-On", step: "05" },
 ].map((item) => (
   <button
