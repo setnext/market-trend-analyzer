@@ -4,7 +4,7 @@ import React, {useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from 'next/image';
 
-export default function ShowCaseContent() {
+function ShowCaseContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const image = searchParams.get("image") ? decodeURIComponent(searchParams.get("image")!) : '';
@@ -220,4 +220,17 @@ const [result, setResult] = useState<ShowcaseResult | null>(null);
       </div>
 
   )
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center text-white">
+        Loading...
+      </div>
+    }>
+      <ShowCaseContent />
+    </Suspense>
+  );
 }
