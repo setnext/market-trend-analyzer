@@ -61,11 +61,14 @@ export default function FootwearTrendAnalyzer() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMiddleOpen, setIsMiddleOpen] = useState(true);
   const [category, setCategory] = useState<CategoryType>('shoes');
-  const [isResultOpen, setIsResultOpen] = useState(false);
-  const [resultData, setResultData] = useState<ProductResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rightPanelItems, setRightPanelItems] = useState<ProductResult[]>([]);
+  const [resultSource, setResultSource] = useState<ResultSource>(null);
+  type ResultSource = "TREND" | "UPLOAD" | null;
+
+  const [rightPanelMode, setRightPanelMode] =
+    useState<"EMPTY" | "IMAGE_RESULTS" | "CHAT">("EMPTY");
+
   const router = useRouter();
 
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
@@ -80,7 +83,8 @@ export default function FootwearTrendAnalyzer() {
     size: false,
     price: true,
     color: false,
-    gender: false
+    gender: false,
+    category: false
   });
 
   const [priceRange, setPriceRange] = useState({
@@ -105,13 +109,11 @@ export default function FootwearTrendAnalyzer() {
       });
 
       const data = await res.json();
-      const results = data.results || [];
-
       setImageResults(data.results || []);
-      setRightPanelItems(results);  
-      
-    } catch (error) {
-      console.error("Upload failed", error);
+      setResultSource("UPLOAD");
+      setRightPanelMode("IMAGE_RESULTS");
+    } catch (err) {
+      console.error("Error uploading image:", err);
     }
   };
 
@@ -141,52 +143,43 @@ export default function FootwearTrendAnalyzer() {
   const handleApplyFilters = async () => {
     setLoading(true);
     setError(null);
-    setIsResultOpen(true);
+
+
+    setImageResults([]);
+    setRightPanelMode("EMPTY");
+    setResultSource("TREND");
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/scrape", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          website: "flipkart",
+          website: "amazon",
           filters: {
             ...selectedFilters,
             category,
           },
-          price_range: {
-            min: priceRange.min,
-            max: priceRange.max,
-          },
+          price_range: priceRange,
         }),
       });
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Failed to fetch products");
-      }
-
       const data = await response.json();
-      const products = data.products || [];
-      setResultData(data.products || []);
-      setRightPanelItems(products);
+      const products = data.products || data.results || [];
+
+      setImageResults(products);
+      setRightPanelMode("IMAGE_RESULTS");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      setResultData([]);
+      setError("Failed to fetch products");
     } finally {
       setLoading(false);
     }
   };
 
 
-
-  const closeResultModal = () => {
-    setIsResultOpen(false);
-  };
-
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+
+    setRightPanelMode("CHAT");
 
     const userMessage: Message = {
       id: Date.now(),
@@ -216,28 +209,31 @@ export default function FootwearTrendAnalyzer() {
     }
   };
 
-  const trendingKeywords: TrendKeyword[] = [
-    { id: '1', label: 'Chunky Sneakers' },
-    { id: '2', label: 'Sustainable Footwear' },
-    { id: '3', label: 'Platform Shoes' },
-    { id: '4', label: 'Minimalist Sneakers' },
-    { id: '5', label: 'Retro Runners' },
-    { id: '6', label: 'Mary Janes' },
-    { id: '7', label: 'Athletic Sandals' },
-    { id: '8', label: 'Ballet Flats Revival' },
-    { id: '9', label: 'Clogs Comeback' }
-  ];
+  // const trendingKeywords: TrendKeyword[] = [
+  //   { id: '1', label: 'Chunky Sneakers' },
+  //   { id: '2', label: 'Sustainable Footwear' },
+  //   { id: '3', label: 'Platform Shoes' },
+  //   { id: '4', label: 'Minimalist Sneakers' },
+  //   { id: '5', label: 'Retro Runners' },
+  //   { id: '6', label: 'Mary Janes' },
+  //   { id: '7', label: 'Athletic Sandals' },
+  //   { id: '8', label: 'Ballet Flats Revival' },
+  //   { id: '9', label: 'Clogs Comeback' }
+  // ];
 
-  const socialMediaTopics: TrendKeyword[] = [
-    { id: '1', label: 'Adidas Samba' },
-    { id: '2', label: 'New Balance 550' },
-    { id: '3', label: 'Onitsuka Tiger' },
-    { id: '4', label: 'Mesh Ballet Flats' },
-    { id: '5', label: 'Chunky Loafers' },
-    { id: '6', label: 'Sporty Sandals' }
-  ];
+  // const socialMediaTopics: TrendKeyword[] = [
+  //   { id: '1', label: 'Adidas Samba' },
+  //   { id: '2', label: 'New Balance 550' },
+  //   { id: '3', label: 'Onitsuka Tiger' },
+  //   { id: '4', label: 'Mesh Ballet Flats' },
+  //   { id: '5', label: 'Chunky Loafers' },
+  //   { id: '6', label: 'Sporty Sandals' }
+  // ];
 
-  const totalActiveFilters = Object.values(selectedFilters).flat().length;
+  const totalActiveFilters =
+    Object.values(selectedFilters).flat().length +
+    (category ? 1 : 0);
+
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
@@ -511,21 +507,27 @@ export default function FootwearTrendAnalyzer() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-white">Category</span>
+                        <button onClick={() => toggleSection('category')} className="text-sm text-purple-400">
+                          {expandedSections.category ? 'Collapse' : 'Expand'}
+                        </button>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {['slippers', 'shoes', 'sandals', 'sports'].map(cat => (
-                          <button
-                            key={cat}
-                            onClick={() => setCategory(cat as CategoryType)}
-                            className={`h-10 rounded-md border transition-all ${category === cat
-                              ? 'bg-purple-600 border-purple-500 text-white'
-                              : 'bg-gray-800 border-gray-700 hover:border-gray-600 text-gray-200'
-                              }`}
-                          >
-                            <span className="text-xs font-medium capitalize">{cat}</span>
-                          </button>
-                        ))}
-                      </div>
+                      {expandedSections.category && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {['slippers', 'shoes', 'sandals', 'sports'].map(cat => (
+                            <button
+                              key={cat}
+                              onClick={() => setCategory(cat as CategoryType)}
+                              className={`h-10 rounded-md border transition-all ${category === cat
+                                  ? 'bg-purple-600 border-purple-500 text-white'
+                                  : 'bg-gray-800 border-gray-700 hover:border-gray-600 text-gray-200'
+                                }`}
+                            >
+                              <span className="text-xs font-medium capitalize">{cat}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                     </div>
 
                     <button
@@ -579,38 +581,58 @@ export default function FootwearTrendAnalyzer() {
               <div className="flex items-center gap-3">
                 {/* EMPTY ON PURPOSE — imageResults moved below */}
               </div>
-              {totalActiveFilters > 0 && (
+              {resultSource === "TREND" && totalActiveFilters > 0 && (
                 <div className="bg-purple-600 px-3 py-1.5 rounded-full text-xs font-semibold text-white">
-                  {totalActiveFilters} filter{totalActiveFilters !== 1 ? 's' : ''} active
+                  {totalActiveFilters} filter{totalActiveFilters !== 1 ? "s" : ""} active
                 </div>
               )}
+
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            {/* IMAGE UPLOAD RESULTS — NOW CORRECTLY PLACED IN MAIN CONTENT AREA */}
-            {imageResults.length > 0 && (
+
+            {/* LOADING STATE */}
+            {loading && (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-10 h-10 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-400">
+                    Analyzing products with applied filters...
+                  </p>
+                </div>
+              </div>
+            )}
+
+
+
+            {/* IMAGE UPLOAD RESULTS */}
+            {rightPanelMode === "IMAGE_RESULTS" && imageResults.length > 0 && (
               <div className="mt-6 mb-8">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {imageResults.map((item, index) => (
                     <div
                       key={index}
                       onClick={() =>
-                    router.push(
-                      `/productDesign?image=${encodeURIComponent(item.image || '')}&title=${encodeURIComponent(item.title || '')}`
-                    )
-                  }
-                                      className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition"
+                        router.push(
+                          `/productDesign?image=${encodeURIComponent(item.image || item.image_url || "")}&title=${encodeURIComponent(item.title || item.name || "Selected Product")}`
+                        )
+                      }
+                      className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition"
                     >
                       <img
-                        src={item.image}
-                        alt={item.title}
+                        src={item.image || item.image_url}
+                        alt={item.title || item.name}
+
                         className="w-full h-48 object-contain bg-white"
+
                       />
+
                       <div className="p-3">
                         <p className="text-sm font-semibold text-white line-clamp-2">
-                          {item.title}
+                          {item.title || item.name}
                         </p>
+
                         {item.price && (
                           <p className="text-xs text-purple-400 mt-1">{item.price}</p>
                         )}
@@ -624,26 +646,43 @@ export default function FootwearTrendAnalyzer() {
               </div>
             )}
 
-            {/* CHAT MESSAGES OR EMPTY STATE */}
-            {messages.length === 0 && imageResults.length === 0 ? (
+            {/* EMPTY STATE */}
+            {!loading && rightPanelMode === "EMPTY" && messages.length === 0 && (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <MessageSquare className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-300 mb-2">Start Analyzing Footwear Trends</h3>
-                  <p className="text-gray-400">Apply filters on the left and ask questions about styles, brands, or emerging trends.</p>
+                  <h3 className="text-xl font-bold text-gray-300 mb-2">
+                    Start Analyzing Footwear Trends
+                  </h3>
+                  <p className="text-gray-400">
+                    Apply filters on the left and ask questions about styles, brands, or emerging trends.
+                  </p>
                 </div>
               </div>
-            ) : (
+            )}
+
+
+            {/* CHAT */}
+            {rightPanelMode === "CHAT" && messages.length > 0 && (
               <div className="space-y-4">
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-2xl px-5 py-3 rounded-2xl ${message.sender === 'user'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-800 text-white border border-gray-700'
-                      }`}>
+                  <div
+                    key={message.id}
+                    className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"
+                      }`}
+                  >
+                    <div
+                      className={`max-w-2xl px-5 py-3 rounded-2xl ${message.sender === "user"
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-800 text-white border border-gray-700"
+                        }`}
+                    >
                       <p className="text-sm leading-relaxed">{message.text}</p>
-                      <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'}`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <p className="text-xs mt-1 text-gray-400">
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -652,7 +691,8 @@ export default function FootwearTrendAnalyzer() {
             )}
           </div>
 
-          <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
+
+          {/* <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
             <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
               <button className="p-1 hover:bg-gray-700 rounded-full transition">
                 <Plus className="w-5 h-5 text-gray-400" />
@@ -673,219 +713,9 @@ export default function FootwearTrendAnalyzer() {
                 <Send className="w-4 h-4 text-white" />
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        {/* PRODUCT RESULTS MODAL */}
-        {isResultOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-7xl max-h-[90vh] bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl border border-gray-800 overflow-hidden flex flex-col">
-
-              {/* Header */}
-              <div className="bg-gradient-to-r from-purple-900/50 to-violet-900/50 px-6 py-4 border-b border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">
-                      Amazon – {category.toUpperCase()} Results
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {!loading && Array.isArray(resultData) && resultData.length > 0
-                        ? `${resultData.length} products found`
-                        : 'Loading products...'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={closeResultModal}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scroll">
-                {/* Loading State */}
-                {loading && (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="relative">
-                      <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin"></div>
-                      <BarChart3 className="w-6 h-6 text-purple-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                    </div>
-                    <p className="text-sm text-gray-400 mt-4">
-                      Analyzing Amazon products...
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      This may take a few moments
-                    </p>
-                  </div>
-                )}
-
-                {/* Error State */}
-                {!loading && error && (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-                      <span className="text-3xl">⚠️</span>
-                    </div>
-                    <p className="text-red-400 font-semibold mb-2">Failed to fetch products</p>
-                    <p className="text-sm text-gray-500">{error}</p>
-                    <button
-                      onClick={handleApplyFilters}
-                      className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                )}
-
-                {/* Results Grid */}
-                {!loading && !error && Array.isArray(resultData) && resultData.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {resultData.map((item, index) => (
-                      <div
-                        key={item.id || index}
-                        className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all hover:shadow-lg hover:shadow-purple-500/10 group"
-                      >
-                        {/* Image Container */}
-                        <div className="relative bg-white/5 p-4 h-48 flex items-center justify-center">
-                          {item.is_trending && (
-                            <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                              <TrendingUp className="w-3 h-3" />
-                              TRENDING
-                            </div>
-                          )}
-                          {!item.in_stock && (
-                            <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
-                              OUT OF STOCK
-                            </div>
-                          )}
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.name || 'Product'}
-                              className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                              onError={(e) => {
-                                console.error('Image failed to load:', item.image_url);
-                                e.currentTarget.style.display = 'none';
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                  parent.innerHTML += '<div class="flex flex-col items-center justify-center h-full"><div class="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mb-2"><svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><p class="text-xs text-gray-500">Image not available</p></div>';
-                                }
-                              }}
-                            />
-                          ) : (
-                            <div className="flex flex-col items-center justify-center h-full">
-                              <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mb-2">
-                                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                              </div>
-                              <p className="text-xs text-gray-500">No image</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="p-4">
-                          <p className="text-sm font-semibold text-white line-clamp-2 mb-2 min-h-[40px]">
-                            {item.name || 'Product Name'}
-                          </p>
-
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-gray-400 bg-gray-700 px-2 py-0.5 rounded">
-                              {item.brand || 'Brand'}
-                            </span>
-                            <span className="text-xs text-gray-500">•</span>
-                            <span className="text-xs text-gray-400 capitalize">
-                              {item.gender || 'N/A'}
-                            </span>
-                          </div>
-
-                          {/* Price */}
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="text-lg font-bold text-purple-400">
-                              ₹{typeof item.price === 'number' || typeof item.price === 'string'
-                                ? Number(item.price || 0).toLocaleString()
-                                : '0'}
-                            </span>
-
-                            {item.original_price != null &&
-                              item.price != null &&
-                              Number(item.original_price) > Number(item.price) && (
-                                <>
-                                  <span className="text-xs line-through text-gray-500">
-                                    ₹{Number(item.original_price).toLocaleString()}
-                                  </span>
-
-                                  {item.discount != null && item.discount > 0 && (
-                                    <span className="text-xs font-semibold text-green-400">
-                                      {Math.round(item.discount)}% OFF
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                          </div>
-                          {/* Rating */}
-                          {item.rating && (
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="flex items-center gap-1 bg-green-900/30 px-2 py-0.5 rounded">
-                                <span className="text-xs font-bold text-green-400">
-                                  ⭐ {item.rating}
-                                </span>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                ({item.reviews?.toLocaleString() || 0} reviews)
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Attributes */}
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {item.colour && (
-                              <span className="text-[11px] bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
-                                🎨 {item.colour}
-                              </span>
-                            )}
-                            {item.size && (
-                              <span className="text-[11px] bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
-                                📏 Size {item.size}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* View Button */}
-                          <a
-                            href={item.product_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-center text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2.5 transition-colors"
-                          >
-                            View on flipkart
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Empty State */}
-                {!loading && !error && Array.isArray(resultData) && resultData.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                      <Search className="w-8 h-8 text-gray-600" />
-                    </div>
-                    <p className="text-gray-400 font-semibold mb-2">No products found</p>
-                    <p className="text-sm text-gray-500">Try adjusting your filters</p>
-                  </div>
-                )}
-              </div>
-
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
