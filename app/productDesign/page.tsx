@@ -28,22 +28,24 @@ function ProductDesignContent() {
   const productImage = searchParams.get('image') ? decodeURIComponent(searchParams.get('image')!) : '';
   const productTitle = searchParams.get('title') ? decodeURIComponent(searchParams.get('title')!) : '';
   
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (productTitle) {
-      return [{
-        id: Date.now(),
-        text: `I can help you modify "${productTitle}".`,
-        sender: 'bot' as const,
-        timestamp: new Date()
-      }];
-    }
-    return [];
-  });
-  
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentEditedImage, setCurrentEditedImage] = useState<string>(productImage);
   const [hasBeenEdited, setHasBeenEdited] = useState(false);
+
+  // Initialize messages with the original image
+  React.useEffect(() => {
+    if (productTitle && productImage && messages.length === 0) {
+      setMessages([{
+        id: Date.now(),
+        text: `I can help you modify "${productTitle}".`,
+        sender: 'bot',
+        timestamp: new Date(),
+        editedImage: productImage
+      }]);
+    }
+  }, [productTitle, productImage, messages.length]);
 
   const handleImageEdit = async (prompt: string) => {
     if (!currentEditedImage) return;
@@ -77,7 +79,7 @@ function ProductDesignContent() {
 
       const botMessage: Message = {
         id: Date.now() + 1,
-        text: `: "${prompt}".`,
+        text: `Modified: "${prompt}".`,
         sender: "bot",
         timestamp: new Date(),
         editedImage: editedImageUrl,
@@ -86,7 +88,7 @@ function ProductDesignContent() {
 
       setMessages(prev => [...prev, botMessage]);
       setCurrentEditedImage(editedImageUrl);
-      setHasBeenEdited(true); // Mark as edited
+      setHasBeenEdited(true);
 
     } catch (err) {
       console.error("❌ Edit failed:", err);
@@ -212,7 +214,7 @@ function ProductDesignContent() {
                       <div className="mt-4">
                         <Image 
                           src={message.editedImage} 
-                          alt="Edited design" 
+                          alt="Design preview" 
                           width={400}
                           height={400}
                           className="w-full rounded-lg border border-gray-600"
