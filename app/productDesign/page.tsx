@@ -1,5 +1,5 @@
 "use client";
-import { Plus, Send, ArrowLeft, Loader2, Image as ImageIcon } from "lucide-react";
+import { Plus, Send, ArrowLeft, Loader2, Download,Heart  } from "lucide-react";
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from 'next/image';
@@ -33,6 +33,26 @@ function ProductDesignContent() {
   const [hasBeenEdited, setHasBeenEdited] = useState(false);
   const [replaceImage, setReplaceImage] = useState<File | null>(null);
   const [size] = useState<string>("7");
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // 🔹 ADDED FOR DOWNLOAD
+  const handleDownloadImage = async () => {
+    if (!currentEditedImage) return;
+    try {
+      const response = await fetch(currentEditedImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `design-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("❌ Download failed", err);
+    }
+  };
 
   // Initialize messages with the original image
   React.useEffect(() => {
@@ -49,9 +69,7 @@ function ProductDesignContent() {
 
   const handleImageEdit = async (prompt: string) => {
     if (!currentEditedImage) return;
-
     setIsProcessing(true);
-
     try {
       const formData = new FormData();
       formData.append("image_url", currentEditedImage);
@@ -61,13 +79,10 @@ function ProductDesignContent() {
         formData.append("replace_image", replaceImage);
       }
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/image/replace",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("http://127.0.0.1:8000/image/replace", {
+        method: "POST",
+        body: formData,
+      });
 
       const result = await response.json();
       const editedImageUrl = `http://127.0.0.1:8000${result.views.edited}`;
@@ -85,16 +100,15 @@ function ProductDesignContent() {
       setCurrentEditedImage(editedImageUrl);
       setHasBeenEdited(true);
       setReplaceImage(null);
-
     } catch (err) {
       console.error("❌ Edit failed:", err);
     } finally {
       setIsProcessing(false);
     }
   };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
-
     const userMessage: Message = {
       id: Date.now(),
       text: inputValue,
@@ -102,10 +116,8 @@ function ProductDesignContent() {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMessage]);
-    
     const prompt = inputValue;
     setInputValue("");
-
     await handleImageEdit(prompt);
   };
 
@@ -124,7 +136,7 @@ function ProductDesignContent() {
         </h1>
       </div>
 
-      {/* STEPPER NAV  */}
+      {/* STEPPER NAV */}
       <div className="bg-black border-b border-gray-800 px-6 py-4">
         <div className="flex items-center gap-10">
           {[
@@ -153,33 +165,60 @@ function ProductDesignContent() {
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT PANEL */}
         <div className="w-[35%] bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 p-6 flex flex-col">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-white mb-2">
-              {hasBeenEdited ? "Generated Design" : "Current Design"}
-            </h2>
-            <p className="text-sm text-gray-400 mb-3">{productTitle}</p>
-          </div>
+          <h2 className="text-xl font-bold text-white mb-2">
+            {hasBeenEdited ? "Generated Design" : "Current Design"}
+          </h2>
+          <p className="text-sm text-gray-400 mb-3">{productTitle}</p>
 
-          {currentEditedImage && (
-            <div className="flex-1 flex items-center justify-center bg-white rounded-lg overflow-hidden">
-              <Image
-                src={currentEditedImage}
-                alt={productTitle}
-                width={500}
-                height={500}
-                className="max-w-full max-h-full object-contain"
-                unoptimized
-              />
-            </div>
-          )}
+ {currentEditedImage && (
+  <div className="relative flex-1 flex items-center justify-center bg-white rounded-lg overflow-hidden">
 
-          <div className="mt-4">
+<div className="absolute top-3 right-3 z-10 flex gap-2">
+
+  {/* 🔹 FAVORITE ICON */}
+  <button
+    onClick={() => setIsFavorite(prev => !prev)}
+    className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition"
+    title="Favorite"
+  >
+    <Heart
+      className={`w-5 h-5 transition ${
+       isFavorite ? "text-green-500 fill-green-500" : "text-white"
+      }`}
+    />
+  </button>
+
+  {/* 🔹 DOWNLOAD ICON */}
+  <button
+    onClick={handleDownloadImage}
+    className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition"
+    title="Download design"
+  >
+    <Download className="w-5 h-5 text-white" />
+  </button>
+</div>
+<Image
+      src={currentEditedImage}
+      alt={productTitle}
+      width={500}
+      height={500}
+      className="max-w-full max-h-full object-contain"
+      unoptimized
+    />
+  </div>
+)}
+
+
+          <div className="mt-4 space-y-3">
             <button
               onClick={() => router.push(`/catalog?image=${encodeURIComponent(currentEditedImage)}&title=${encodeURIComponent(productTitle)}`)}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
             >
               Add to Catalogue
             </button>
+
+            {/* 🔹 ADDED FOR DOWNLOAD */}
+
           </div>
         </div>
 
@@ -202,7 +241,6 @@ function ProductDesignContent() {
                 <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className="max-w-2xl px-5 py-3 rounded-2xl bg-gray-800 border border-gray-700">
                     <p className="text-sm">{message.text}</p>
-
                     {message.editedImage && (
                       <Image
                         src={message.editedImage}
@@ -214,8 +252,7 @@ function ProductDesignContent() {
                         unoptimized
                       />
                     )}
-
-                   <p className="text-xs mt-2 text-gray-500">
+                    <p className="text-xs mt-2 text-gray-500">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -238,20 +275,19 @@ function ProductDesignContent() {
           {/* INPUT BAR */}
           <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
             <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
-
-<label className="cursor-pointer p-1 hover:bg-gray-700 rounded-full transition">
-  <Plus className="w-5 h-5 text-gray-400" />
-  <input
-    type="file"
-    hidden
-    accept="image/*"
-    onChange={(e) => {
-      if (e.target.files?.[0]) {
-        setReplaceImage(e.target.files[0]);
-      }
-    }}
-  />
-</label>
+              <label className="cursor-pointer p-1 hover:bg-gray-700 rounded-full transition">
+                <Plus className="w-5 h-5 text-gray-400" />
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setReplaceImage(e.target.files[0]);
+                    }
+                  }}
+                />
+              </label>
 
               <input
                 type="text"
@@ -268,11 +304,7 @@ function ProductDesignContent() {
                 disabled={!inputValue.trim() || isProcessing}
                 className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
               >
-                {isProcessing ? (
-                  <Loader2 className="w-4 h-4 text-white animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 text-white" />
-                )}
+                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
           </div>
