@@ -53,6 +53,7 @@ function CatalogContent() {
               alt={title || "Catalog Image"}
               width={300}
               height={300}
+              unoptimized
               className="rounded-lg object-contain"
             />
             <p className="text-white mt-2 text-center">{title}</p>
