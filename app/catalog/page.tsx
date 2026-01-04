@@ -63,7 +63,7 @@ function CatalogContent() {
         )}
         <button
         //   onClick={() => router.back()}
-            onClick={() =>   router.push(`/showcase?image=${encodeURIComponent(image)}`)}
+            onClick={() =>   router.push(`/showCase?image=${encodeURIComponent(image)}`)}
 
 
           className="mt-1 flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"

@@ -1,5 +1,5 @@
 "use client";
-import { Plus, Send, ArrowLeft, Loader2, Download,Heart  } from "lucide-react";
+import {Plus,Send,ArrowLeft,Loader2,Download,Heart} from "lucide-react";
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from 'next/image';
@@ -10,15 +10,6 @@ interface Message {
   sender: 'user' | 'bot';
   timestamp: Date;
   editedImage?: string;
-  bom?: {
-    product_name: string;
-    components: Array<{
-      name: string;
-      material: string;
-      finish: string;
-      quantity: number;
-    }>;
-  };
 }
 
 function ProductDesignContent() {
@@ -33,43 +24,50 @@ function ProductDesignContent() {
   const [hasBeenEdited, setHasBeenEdited] = useState(false);
   const [replaceImage, setReplaceImage] = useState<File | null>(null);
   const [size] = useState<string>("7");
-  const [isFavorite, setIsFavorite] = useState(false);
 
-  // 🔹 ADDED FOR DOWNLOAD
+  // FAVORITES & CATALOG VIEW
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [activeView, setActiveView] = useState<"design" | "catalog">("design");
+
+  // DOWNLOAD HANDLER
   const handleDownloadImage = async () => {
     if (!currentEditedImage) return;
     try {
-      const response = await fetch(currentEditedImage);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `design-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("❌ Download failed", err);
+      const res = await fetch(currentEditedImage);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `design-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Download failed", e);
     }
   };
 
-  // Initialize messages with the original image
+  // Initialize messages
   React.useEffect(() => {
     if (productTitle && productImage && messages.length === 0) {
-      setMessages([{
-        id: Date.now(),
-        text: `I can help you modify "${productTitle}".`,
-        sender: 'bot',
-        timestamp: new Date(),
-        editedImage: productImage
-      }]);
+      setMessages([
+        {
+          id: Date.now(),
+          text: `I can help you modify "${productTitle}".`,
+          sender: 'bot',
+          timestamp: new Date(),
+          editedImage: productImage
+        }
+      ]);
     }
   }, [productTitle, productImage, messages.length]);
 
   const handleImageEdit = async (prompt: string) => {
     if (!currentEditedImage) return;
     setIsProcessing(true);
+
     try {
       const formData = new FormData();
       formData.append("image_url", currentEditedImage);
@@ -79,10 +77,13 @@ function ProductDesignContent() {
         formData.append("replace_image", replaceImage);
       }
 
-      const response = await fetch("http://127.0.0.1:8000/image/replace", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/image/replace",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const result = await response.json();
       const editedImageUrl = `http://127.0.0.1:8000${result.views.edited}`;
@@ -93,15 +94,16 @@ function ProductDesignContent() {
         sender: "bot",
         timestamp: new Date(),
         editedImage: editedImageUrl,
-        bom: result.bom
       };
 
       setMessages(prev => [...prev, botMessage]);
       setCurrentEditedImage(editedImageUrl);
       setHasBeenEdited(true);
       setReplaceImage(null);
+      setIsFavorite(false);
+
     } catch (err) {
-      console.error("❌ Edit failed:", err);
+      console.error("Edit failed:", err);
     } finally {
       setIsProcessing(false);
     }
@@ -109,19 +111,22 @@ function ProductDesignContent() {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
+
     const userMessage: Message = {
       id: Date.now(),
       text: inputValue,
       sender: "user",
       timestamp: new Date()
     };
+
     setMessages(prev => [...prev, userMessage]);
+
     const prompt = inputValue;
     setInputValue("");
     await handleImageEdit(prompt);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !isProcessing) {
       handleSendMessage();
     }
@@ -129,6 +134,7 @@ function ProductDesignContent() {
 
   return (
     <div className="flex flex-col h-screen bg-black">
+
       {/* HEADER */}
       <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-6">
         <h1 className="text-lg font-semibold text-white tracking-wide">
@@ -146,15 +152,30 @@ function ProductDesignContent() {
             { id: "showcase", label: "Showcase", step: "04" },
             { id: "tryon", label: "Try-On", step: "05" },
           ].map((item) => (
-            <button key={item.id} className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                item.id === 'design' ? "bg-purple-600 text-white" : "border border-gray-600 text-gray-400"
-              }`}>
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.id === "catalog") setActiveView("catalog");
+                if (item.id === "design") setActiveView("design");
+              }}
+              className="flex items-center gap-3"
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                  item.id === activeView
+                    ? "bg-purple-600 text-white"
+                    : "border border-gray-600 text-gray-400"
+                }`}
+              >
                 {item.step}
               </div>
-              <span className={`text-sm font-medium ${
-                item.id === 'design' ? "text-purple-400" : "text-gray-400"
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  item.id === activeView
+                    ? "text-purple-400"
+                    : "text-gray-400"
+                }`}
+              >
                 {item.label}
               </span>
             </button>
@@ -163,152 +184,233 @@ function ProductDesignContent() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* LEFT PANEL */}
-        <div className="w-[35%] bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 p-6 flex flex-col">
-          <h2 className="text-xl font-bold text-white mb-2">
-            {hasBeenEdited ? "Generated Design" : "Current Design"}
-          </h2>
-          <p className="text-sm text-gray-400 mb-3">{productTitle}</p>
 
- {currentEditedImage && (
-  <div className="relative flex-1 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+        {/* CATALOG VIEW - FULL PANEL */}
+        {activeView === "catalog" ? (
+          <div className="flex-1 bg-gradient-to-b from-gray-900 to-black p-6">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Favorites
+            </h2>
+            <p className="text-sm text-gray-400 mb-6">
+              {productTitle}
+            </p>
 
-<div className="absolute top-3 right-3 z-10 flex gap-2">
-
-  {/* 🔹 FAVORITE ICON */}
-  <button
-    onClick={() => setIsFavorite(prev => !prev)}
-    className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition"
-    title="Favorite"
-  >
-    <Heart
-      className={`w-5 h-5 transition ${
-       isFavorite ? "text-green-500 fill-green-500" : "text-white"
-      }`}
-    />
-  </button>
-
-  {/* 🔹 DOWNLOAD ICON */}
-  <button
-    onClick={handleDownloadImage}
-    className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition"
-    title="Download design"
-  >
-    <Download className="w-5 h-5 text-white" />
-  </button>
-</div>
-<Image
-      src={currentEditedImage}
-      alt={productTitle}
-      width={500}
-      height={500}
-      className="max-w-full max-h-full object-contain"
-      unoptimized
-    />
-  </div>
-)}
-
-
-          <div className="mt-4 space-y-3">
-            <button
-              onClick={() => router.push(`/catalog?image=${encodeURIComponent(currentEditedImage)}&title=${encodeURIComponent(productTitle)}`)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              Add to Catalogue
-            </button>
-
-            {/* 🔹 ADDED FOR DOWNLOAD */}
-
-          </div>
-        </div>
-
-        {/* CHAT PANEL */}
-        <div className="flex-1 flex flex-col bg-black text-white">
-          <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition mb-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">Back to Discovery</span>
-            </button>
-            <h2 className="font-bold text-lg">AI Design Modification</h2>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-2xl px-5 py-3 rounded-2xl bg-gray-800 border border-gray-700">
-                    <p className="text-sm">{message.text}</p>
-                    {message.editedImage && (
+            {favorites.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-400 text-lg">
+                  No favorite designs yet. Start creating and add to favorites!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-6 gap-2 overflow-y-auto">
+                {favorites.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-800 rounded-md overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all hover:scale-105"
+                    onClick={() => {
+                      setCurrentEditedImage(img);
+                      setActiveView("design");
+                      setIsFavorite(true);
+                    }}
+                  >
+                    <div className="bg-white p-1 aspect-square flex items-center justify-center">
                       <Image
-                        src={message.editedImage}
-                        alt="Design preview"
-                        width={400}
-                        height={400}
-                        className="mt-4 rounded-lg border border-gray-600 cursor-pointer"
-                        onClick={() => setCurrentEditedImage(message.editedImage!)}
+                        src={img}
+                        alt="Favorite"
+                        width={120}
+                        height={120}
+                        className="w-full h-full object-contain"
                         unoptimized
                       />
-                    )}
-                    <p className="text-xs mt-2 text-gray-500">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {isProcessing && (
-                <div className="flex justify-start">
-                  <div className="px-5 py-3 rounded-2xl bg-gray-800 border border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-                      <p className="text-sm text-gray-300">Generating design modifications...</p>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-white font-medium text-[10px]">Design {idx + 1}</p>
+                      <p className="text-gray-400 text-[9px] mt-0.5 truncate">{productTitle}</p>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* LEFT PANEL - DESIGN VIEW */}
+            <div className="w-[35%] bg-gradient-to-b from-gray-900 to-black border-r border-gray-800 p-6 flex flex-col">
+
+              <h2 className="text-xl font-bold text-white mb-2">
+                {hasBeenEdited ? "Generated Design" : "Current Design"}
+              </h2>
+
+              <p className="text-sm text-gray-400 mb-3">
+                {productTitle}
+              </p>
+
+              {currentEditedImage && (
+                <div className="relative flex-1 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+
+                  {/* FAVORITE + DOWNLOAD */}
+                  <div className="absolute top-3 right-3 z-10 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setIsFavorite(prev => !prev);
+                        setFavorites(prev =>
+                          prev.includes(currentEditedImage)
+                            ? prev.filter(i => i !== currentEditedImage)
+                            : [...prev, currentEditedImage]
+                        );
+                      }}
+                      className="p-2 bg-black/60 rounded-full"
+                    >
+                      <Heart
+                        className={`w-5 h-5 ${
+                          isFavorite
+                            ? "text-green-500 fill-green-500"
+                            : "text-white"
+                        }`}
+                      />
+                    </button>
+
+                    <button
+                      onClick={handleDownloadImage}
+                      className="p-2 bg-black/60 rounded-full"
+                    >
+                      <Download className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
+
+                  <Image
+                    src={currentEditedImage}
+                    alt={productTitle}
+                    width={500}
+                    height={500}
+                    className="max-w-full max-h-full object-contain"
+                    unoptimized
+                  />
                 </div>
               )}
+
+              <div className="mt-4">
+                <button
+                  onClick={() =>
+                    router.push(
+                      `/catalog?image=${encodeURIComponent(currentEditedImage)}&title=${encodeURIComponent(productTitle)}`
+                    )
+                  }
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                >
+                  Add to Catalogue
+                </button>
+              </div>
+
             </div>
-          </div>
 
-          {/* INPUT BAR */}
-          <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
-            <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
-              <label className="cursor-pointer p-1 hover:bg-gray-700 rounded-full transition">
-                <Plus className="w-5 h-5 text-gray-400" />
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      setReplaceImage(e.target.files[0]);
-                    }
-                  }}
-                />
-              </label>
+            {/* CHAT PANEL */}
+            <div className="flex-1 flex flex-col bg-black text-white">
+              <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition mb-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="text-sm">Back to Discovery</span>
+                </button>
+                <h2 className="font-bold text-lg">AI Design Modification</h2>
+              </div>
 
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Describe the changes you want..."
-                className="flex-1 outline-none bg-transparent text-white placeholder-gray-500 text-sm"
-                disabled={isProcessing}
-              />
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${
+                        message.sender === 'user'
+                          ? 'justify-end'
+                          : 'justify-start'
+                      }`}
+                    >
+                      <div className="max-w-2xl px-5 py-3 rounded-2xl bg-gray-800 border border-gray-700">
+                        <p className="text-sm">{message.text}</p>
 
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isProcessing}
-                className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
-              >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </button>
+                        {message.editedImage && (
+                          <Image
+                            src={message.editedImage}
+                            alt="Design preview"
+                            width={400}
+                            height={400}
+                            className="mt-4 rounded-lg border border-gray-600 cursor-pointer"
+                            onClick={() =>
+                              setCurrentEditedImage(message.editedImage!)
+                            }
+                            unoptimized
+                          />
+                        )}
+
+                        <p className="text-xs mt-2 text-gray-500">
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {isProcessing && (
+                    <div className="flex justify-start">
+                      <div className="px-5 py-3 rounded-2xl bg-gray-800 border border-gray-700">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                          <p className="text-sm text-gray-300">
+                            Generating design modifications...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* INPUT BAR */}
+              <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
+                <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
+                  <label className="cursor-pointer p-1 hover:bg-gray-700 rounded-full transition">
+                    <Plus className="w-5 h-5 text-gray-400" />
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setReplaceImage(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Describe the changes you want..."
+                    className="flex-1 outline-none bg-transparent text-white placeholder-gray-500 text-sm"
+                    disabled={isProcessing}
+                  />
+
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!inputValue.trim() || isProcessing}
+                    className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
+                  >
+                    {isProcessing
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Send className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
