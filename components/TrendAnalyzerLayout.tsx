@@ -1,6 +1,7 @@
 "use client";
 import { Plus, Send, Search, TrendingUp, MessageSquare, Sparkles, Lightbulb, Instagram, BarChart3, Upload, RefreshCw, Settings, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState } from 'react';
+import { COUNTRIES } from "../data/countries";
 import { useRouter, useSearchParams } from "next/navigation";
 type FilterType = 'brand' | 'size' | 'color' | 'gender';
 type NavSection = 'context' | 'inspiration';
@@ -60,11 +61,20 @@ export default function FootwearTrendAnalyzer() {
   const [inputValue, setInputValue] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMiddleOpen, setIsMiddleOpen] = useState(true);
-  const [category, setCategory] = useState<CategoryType>('shoes');
+  const [category, setCategory] = useState<CategoryType | null>(null);
   const [loading, setLoading] = useState(false);
+  const WEBSITES = ["flipkart", "amazon", "myntra", "reliancedigital"];
+  const [website, setWebsite] = useState<string>(WEBSITES[0]);
+  const isValidWebsite = WEBSITES.includes(website);
+  
+
+  const [country, setCountry] = useState<string>("IN");
+
+
   const [error, setError] = useState<string | null>(null);
-  const [resultSource, setResultSource] = useState<ResultSource>(null);
   type ResultSource = "TREND" | "UPLOAD" | null;
+  const [resultSource, setResultSource] = useState<ResultSource>(null);
+
 
   const [rightPanelMode, setRightPanelMode] =
     useState<"EMPTY" | "IMAGE_RESULTS" | "CHAT">("EMPTY");
@@ -143,8 +153,6 @@ export default function FootwearTrendAnalyzer() {
   const handleApplyFilters = async () => {
     setLoading(true);
     setError(null);
-
-
     setImageResults([]);
     setRightPanelMode("EMPTY");
     setResultSource("TREND");
@@ -154,19 +162,24 @@ export default function FootwearTrendAnalyzer() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          website: "amazon",
+          website,   // ✅ dynamic
           filters: {
             ...selectedFilters,
             category,
           },
           price_range: priceRange,
         }),
+
       });
 
       const data = await response.json();
-      const products = data.products || data.results || [];
 
-      setImageResults(products);
+      if (!data.success) {
+        setError(data.error || "Backend error");
+        return;
+      }
+
+      setImageResults(data.products || []);
       setRightPanelMode("IMAGE_RESULTS");
     } catch (err) {
       setError("Failed to fetch products");
@@ -174,6 +187,7 @@ export default function FootwearTrendAnalyzer() {
       setLoading(false);
     }
   };
+
 
 
   const handleSendMessage = async () => {
@@ -208,27 +222,6 @@ export default function FootwearTrendAnalyzer() {
       handleSendMessage();
     }
   };
-
-  // const trendingKeywords: TrendKeyword[] = [
-  //   { id: '1', label: 'Chunky Sneakers' },
-  //   { id: '2', label: 'Sustainable Footwear' },
-  //   { id: '3', label: 'Platform Shoes' },
-  //   { id: '4', label: 'Minimalist Sneakers' },
-  //   { id: '5', label: 'Retro Runners' },
-  //   { id: '6', label: 'Mary Janes' },
-  //   { id: '7', label: 'Athletic Sandals' },
-  //   { id: '8', label: 'Ballet Flats Revival' },
-  //   { id: '9', label: 'Clogs Comeback' }
-  // ];
-
-  // const socialMediaTopics: TrendKeyword[] = [
-  //   { id: '1', label: 'Adidas Samba' },
-  //   { id: '2', label: 'New Balance 550' },
-  //   { id: '3', label: 'Onitsuka Tiger' },
-  //   { id: '4', label: 'Mesh Ballet Flats' },
-  //   { id: '5', label: 'Chunky Loafers' },
-  //   { id: '6', label: 'Sporty Sandals' }
-  // ];
 
   const totalActiveFilters =
     Object.values(selectedFilters).flat().length +
@@ -342,6 +335,47 @@ export default function FootwearTrendAnalyzer() {
                       <h2 className="text-xl font-bold text-white">Trend Intelligence</h2>
                     </div>
                     <p className="text-sm text-gray-300 mb-6">Select filters to drive trend insights</p>
+
+                    {/* Country Selector */}
+                    <div className="mb-4">
+                      <label className="font-semibold text-white">
+                        Country
+                      </label>
+
+                      <select
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                      >
+                        {COUNTRIES.map(c => (
+                          <option key={c.code} value={c.code}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
+
+                    {/* Website Input */}
+                    <div className="mb-4">
+                      <label className="font-semibold text-white">
+                        Website
+                      </label>
+
+                      <input
+                        type="text"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value.toLowerCase())}
+                        placeholder="flipkart / amazon / myntra"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                      />
+
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Supported: flipkart, amazon, myntra, reliancedigital
+                      </p>
+                    </div>
+
 
                     {/* Brand */}
                     <div className="mb-4">
@@ -518,8 +552,8 @@ export default function FootwearTrendAnalyzer() {
                               key={cat}
                               onClick={() => setCategory(cat as CategoryType)}
                               className={`h-10 rounded-md border transition-all ${category === cat
-                                  ? 'bg-purple-600 border-purple-500 text-white'
-                                  : 'bg-gray-800 border-gray-700 hover:border-gray-600 text-gray-200'
+                                ? 'bg-purple-600 border-purple-500 text-white'
+                                : 'bg-gray-800 border-gray-700 hover:border-gray-600 text-gray-200'
                                 }`}
                             >
                               <span className="text-xs font-medium capitalize">{cat}</span>
@@ -532,14 +566,15 @@ export default function FootwearTrendAnalyzer() {
 
                     <button
                       onClick={handleApplyFilters}
-                      disabled={totalActiveFilters === 0}
-                      className={`w-full py-2 text-xs font-medium rounded ${totalActiveFilters > 0
+                      disabled={totalActiveFilters === 0 || !isValidWebsite}
+                      className={`w-full py-2 text-xs font-medium rounded ${totalActiveFilters > 0 && isValidWebsite
                         ? 'bg-purple-600 hover:bg-purple-700 text-white'
                         : 'bg-gray-700 cursor-not-allowed opacity-60 text-gray-400'
                         }`}
                     >
                       Apply {totalActiveFilters} Filter{totalActiveFilters !== 1 ? 's' : ''}
                     </button>
+
                   </div>
                 </div>
               )}
@@ -547,6 +582,25 @@ export default function FootwearTrendAnalyzer() {
               {activeNav === 'inspiration' && (
                 <div className="p-4 space-y-4">
                   <h2 className="text-xl font-bold text-white mb-4">Get Inspired</h2>
+                  {/* Country Selector */}
+                  <div className="mb-4">
+                    <label className="font-semibold text-white">
+                      Country
+                    </label>
+
+                    <select
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                    >
+                      {COUNTRIES.map(c => (
+                        <option key={c.code} value={c.code}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Upload UI */}
                   <label className="relative z-50 border-2 border-dashed border-gray-700 rounded-lg p-6 text-center cursor-pointer hover:border-gray-500 transition block">
                     <Upload className="w-8 h-8 text-gray-500 mx-auto mb-3" />
                     <p className="text-gray-300 font-semibold mb-1">
@@ -573,6 +627,9 @@ export default function FootwearTrendAnalyzer() {
             </div>
           )}
         </div>
+
+
+
 
         {/* Right Panel */}
         <div className="flex-1 flex flex-col bg-black">
@@ -621,12 +678,18 @@ export default function FootwearTrendAnalyzer() {
                       className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition"
                     >
                       <img
-                        src={item.image || item.image_url}
+                        src={
+                          item.image || item.image_url
+                            ? `http://127.0.0.1:8000/api/image-proxy?url=${encodeURIComponent(
+                              item.image ?? item.image_url ?? ""
+                            )}`
+                            : ""
+                        }
                         alt={item.title || item.name}
-
                         className="w-full h-48 object-contain bg-white"
-
                       />
+
+
 
                       <div className="p-3">
                         <p className="text-sm font-semibold text-white line-clamp-2">
@@ -634,8 +697,11 @@ export default function FootwearTrendAnalyzer() {
                         </p>
 
                         {item.price && (
-                          <p className="text-xs text-purple-400 mt-1">{item.price}</p>
+                          <p className="text-xs text-purple-400 mt-1">
+                            ₹{item.price.toLocaleString()}
+                          </p>
                         )}
+
                         {item.rating && (
                           <p className="text-xs text-gray-400 mt-1">⭐ {item.rating}</p>
                         )}
@@ -690,30 +756,6 @@ export default function FootwearTrendAnalyzer() {
               </div>
             )}
           </div>
-
-
-          {/* <div className="bg-gray-900 border-t border-gray-800 px-6 py-4">
-            <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
-              <button className="p-1 hover:bg-gray-700 rounded-full transition">
-                <Plus className="w-5 h-5 text-gray-400" />
-              </button>
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about footwear trends, brands, or styles..."
-                className="flex-1 outline-none bg-transparent text-white placeholder-gray-500 text-sm"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim()}
-                className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
-              >
-                <Send className="w-4 h-4 text-white" />
-              </button>
-            </div>
-          </div> */}
         </div>
 
       </div>
